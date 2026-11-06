@@ -140,7 +140,7 @@ The JSON object MUST contain these top-level keys:
     "importance": "Main comedic ending"
   },
   "complete_video_generation": {
-    "master_prompt": "complete copy-paste-ready video prompt with all actual scenes and dialogues",
+    "master_prompt": "ONE complete, self-contained Google Flow-ready video-generation prompt. Include every scene, exact Kannada dialogue with speaker names, scene timings, character appearance and outfit continuity, location, visual actions, camera framing and movement, lighting, facial expressions, sound effects, background audio, and final punchline. It must be directly copyable into Google Flow without needing any other JSON fields.",
     "negative_prompt": "No identity changes, no distorted faces, no extra characters, no unsafe actions, no adult themes, no incorrect dialogue, no unwanted text artifacts."
   },
   "audio_settings": {
@@ -190,3 +190,7 @@ The JSON object MUST contain these top-level keys:
 }
 
 Use the actual requested duration in every relevant field, not the example value 15. Ensure scene timestamps and punchline timestamps are consistent. Return the complete object, not a partial template.
+
+
+GOOGLE FLOW MASTER PROMPT REQUIREMENT:
+The value of complete_video_generation.master_prompt is the most important handoff field. Write it as one polished, self-contained prompt specifically suitable for pasting into Google Flow. Do not return a short summary, outline, placeholder, or instruction to "use the scenes above". Include the complete scene sequence with exact start/end timing, visual setting, action, camera instructions, lighting, character appearance and wardrobe continuity, expressions, and every spoken line in Kannada script with the correct speaker clearly identified. Include natural childlike voice direction, accurate lip-sync guidance, relevant sound effects and background music, and the final comedic punchline. Keep the prompt internally consistent with the requested duration and aspect ratio. Do not include markdown fences around the prompt.

@@ -224,7 +224,10 @@ IMPORTANT:
 - Scene timestamps must cover the requested {duration} seconds without overlaps or gaps where practical.
 - The final scene must end at exactly {duration} seconds.
 - Do not reuse any title in RECENT TITLES TO AVOID.
-- Include a complete copy-paste-ready video-generation master_prompt with the actual dialogue.
+- Include a complete Google Flow-ready master_prompt as ONE self-contained prompt that can be pasted directly into Google Flow.
+- The Google Flow master_prompt must include the full scene-by-scene visual action, camera framing and movement, setting, lighting, character appearance and outfit continuity, exact Kannada dialogue for every speaker, speaker attribution, expressions, timing, sound effects, background audio, and the final punchline.
+- Do not make the master_prompt refer to other JSON fields; it must be fully standalone and ready to copy.
+- Keep all spoken dialogue in Kannada script and do not translate or paraphrase it.
 - Include Instagram and YouTube title, description, hashtags, SEO keywords, and thumbnail text.
 """
     response = client.models.generate_content(
@@ -379,10 +382,18 @@ small{color:#5c6475}
 <br><br><button onclick="generate()">Generate video JSON</button>
 <small id="status"></small>
 </div>
+<div class="card">
+<h2>Complete prompt for Google Flow</h2>
+<p>After generation, copy this complete standalone prompt and paste it directly into Google Flow.</p>
+<button id="copyFlowButton" onclick="copyFlowPrompt()" disabled>Copy complete prompt for Google Flow</button>
+<textarea id="flowPrompt" rows="12" readonly placeholder="Your complete Google Flow prompt will appear here after generation."></textarea>
+<small id="copyFlowStatus"></small>
+</div>
 <div class="card"><h2>Generated JSON</h2><button onclick="copyOutput()">Copy JSON</button><pre id="result">Your generated JSON will appear here.</pre></div>
 <div class="card"><h2>Recent generations</h2><button onclick="loadHistory()">Refresh history</button><div id="history"></div></div>
 <script>
 let lastOutput = "";
+let lastFlowPrompt = "";
 async function generate(){
  const status=document.getElementById("status"); status.textContent=" Generating...";
  const payload={
@@ -396,10 +407,26 @@ async function generate(){
   const data=await res.json();
   if(!res.ok) throw new Error(data.detail||"Request failed");
   lastOutput=JSON.stringify(data,null,2);document.getElementById("result").textContent=lastOutput;
+  lastFlowPrompt=data?.complete_video_generation?.master_prompt||"";
+  document.getElementById("flowPrompt").value=lastFlowPrompt;
+  document.getElementById("copyFlowButton").disabled=!lastFlowPrompt;
+  document.getElementById("copyFlowStatus").textContent=lastFlowPrompt?"Ready to copy into Google Flow.":"The model did not return a Google Flow master prompt. Please generate again.";
   status.textContent=" Done. Saved to database.";loadHistory();
  }catch(e){status.textContent=" Error: "+e.message;}
 }
-async function copyOutput(){if(lastOutput){await navigator.clipboard.writeText(lastOutput);alert("JSON copied");}}
+async function copyText(text){
+ if(!text) return false;
+ try{await navigator.clipboard.writeText(text);return true;}
+ catch(e){
+  const box=document.createElement("textarea");box.value=text;document.body.appendChild(box);box.select();
+  const ok=document.execCommand("copy");box.remove();return ok;
+ }
+}
+async function copyFlowPrompt(){
+ const ok=await copyText(lastFlowPrompt);
+ document.getElementById("copyFlowStatus").textContent=ok?"Complete Google Flow prompt copied. Paste it into Google Flow.":"Copy failed. Select the text in the box and copy it manually.";
+}
+async function copyOutput(){if(lastOutput){const ok=await copyText(lastOutput);alert(ok?"JSON copied":"Copy failed");}}
 async function loadHistory(){
  try{const res=await fetch("/history?limit=20");const data=await res.json();
  document.getElementById("history").innerHTML=data.items.map(x=>`<p><b>#${x.id}</b> ${x.title} <small>(${x.district||"district"})</small> <a href="/history/${x.id}" target="_blank">Open JSON</a></p>`).join("")||"No history yet.";
